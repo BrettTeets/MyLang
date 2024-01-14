@@ -1,0 +1,36 @@
+//exmaple of anoymous functions
+
+func String[] args -> Main -> int{
+    int[] array = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+    //passing a normal function. Print array is made up but presumable prints an array.
+    Up, array -> Map -> PrintArray;
+
+    //passing an anoymous function.
+    i => i +1, array -> Map -> PrintArray;
+}
+
+func int i -> Up -> int{
+    return i + 1;
+}
+
+
+//here are some next functions, They rely on the variables already in the main function.
+func string s -> Work{
+    while s > 0{
+        s {
+            "good" => Log,
+            "bad: => Log,
+            _ => Error,
+        };
+    }
+
+
+    Log | {
+        s -> print;
+        continue;
+    }
+    Error | {
+        return new Error;
+    }
+}

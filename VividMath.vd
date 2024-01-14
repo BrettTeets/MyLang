@@ -1,0 +1,36 @@
+func string[] args Main -> int{
+    int x = 4;
+    int y = 2;
+
+    //Not defining Print quite yet but it will be a standard function and accepts any input that can be turned into a string.
+    x -> Print;
+    y -> Print;
+    2 + 3 -> Print;
+
+    x, y -> Add, 6 -> Equals -> Print;
+    x, y -> Sub, 2 -> Equals -> Print;
+    x, y -> Mul, 8 -> Equals -> Print;
+    x, y -> Div:q, 2 -> Equals -> Print;
+    x, y -> Div:r, 0 -> Equals -> Print;
+    x, y -> Pow, 16 -> Equals -> Print;
+}
+
+func int a, int b -> Add -> int{
+    return a + b;
+}
+
+func int a, int b -> Sub -> int{
+    return a - b;
+}
+
+func int a, int b -> Mul -> int{
+    return a * b;
+}
+
+func int a, int b -> Div -> int q, int r{
+    return a / b, a % b;
+}
+
+func int a, int b -> Pow -> int{
+    return a^b;
+}

@@ -1,0 +1,51 @@
+//Here is an example of writing hello world to a file and copy the contents of one folder to another.
+//breif look at theoretical stream class.
+
+func String[] args -> Main -> int{
+    Path out = "file.txt";
+    Path in = "stdin.io";
+
+    Stream input | in, 'r' -> OpenStream;
+    Stream output | out, 'w' -> OpenStream;
+
+    output, "hello World!" -> Write -> _;
+
+    input, output -> CopyToFile;
+    input, output -> CopyToFile2;
+    input, output -> CopyToFile3;
+}
+
+func Stream in, Stream out -> CopyToFile{
+    char c | in -> Read;
+    out, c -> Write -> _;
+}
+
+func Stream in, Stream out -> CopyToFile2{
+    in -> Read, out -> Write -> _;
+}
+
+func s:Read, s:Write -> CopyToFile3{
+    Read -> Write -> _;
+}
+
+
+func Path p, Open_Type t -> OpenStream -> Stream s{
+    return | p, t -> new Stream;
+}
+
+func Stream s -> CloseStream { 
+    //close the stream;
+}
+
+func Stream s -> Read -> char, int{
+    //do stuff in stream to read from the buffer;
+    return c, i;
+}
+
+func Stream s, Char c -> Write -> bool{
+    //write to a steam;
+}
+
+class Path p, Open_Type t -> Stream{
+    //Typical inputs for a input or output stream.
+}

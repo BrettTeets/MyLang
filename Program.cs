@@ -10,7 +10,7 @@ internal class Program
         Console.WriteLine("Hello, World!");
         Lexer l = new();
 
-        using (StreamReader reader = new StreamReader("sample.vl")){
+        using (StreamReader reader = new StreamReader("VividMath.vd")){
             foreach (Token token in l.Lex(reader))
             {
                 Console.WriteLine($"type: {token.type} = {token.text}");

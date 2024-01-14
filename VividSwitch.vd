@@ -1,0 +1,28 @@
+func string[] args Main -> int{
+    print(7 -> SwitchExample)
+}
+
+//This code simply multiplies, adds or divides a number based on its value.
+func int v -> SwitchExample -> int{
+
+    //the switch can match a single case or several different cases to one action.
+    //using the => tells 
+
+    switch v {
+        1 => multiply; 
+        3, 5 => add;
+        v % 2 == 0 => divide;
+        _ => _;
+    }
+
+    //Anoymous functions again. Note its using its parent variables;
+    multiply => {
+        return v * 3 + 1;
+    }
+    add => {
+        return v + 2;
+    }
+    divide => {
+        return v / 2;
+    }
+}

@@ -1,0 +1,3 @@
+func String[] args -> Main -> int{
+    println("Hello World);
+}

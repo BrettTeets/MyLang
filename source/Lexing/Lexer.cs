@@ -1,3 +1,6 @@
+using System.Diagnostics;
+using System.Security.Cryptography;
+
 public class Lexer{
     public IEnumerable<Token> Lex(StreamReader stream){
         bool CommentMode = false;
@@ -160,22 +163,40 @@ public class Lexer{
     }
 
     private Token ParsePunctuation(Token token){
-        token.type = Token_Type.SyntaxToken;
+        token.type = token.text switch{
+            "," => Token_Type.Seperator,
+            ";" => Token_Type.EndStatement,
+            _ => Token_Type.Error,
+        };
+
         return token;
     }
 
     private Token ParseOperator(Token token){
-        token.type = Token_Type.Operator;
         //TODO distingish between mathmatical and logical operators.
+        token.type = token.text switch {
+            "==" => Token_Type.Equality,
+            "+" => Token_Type.Addition,
+            "-" => Token_Type.Subtraction,
+            "*" => Token_Type.Multiplication,
+            "/" => Token_Type.Division,
+            "%" => Token_Type.Modulus,
+            "^" => Token_Type.Exponention,
+            "->" => Token_Type.FlowOperator,
+            "=" => Token_Type.Assignment,
+            "=>" => Token_Type.DefiningOperator,
+            _ => Token_Type.Error,
+        };
         return token;
     }
 
     private bool IsPunctuationSymbol(char c){
         return c switch{
-            '.' => true,
-            ':' => true,
             ',' => true,
             ';' => true,
+
+            '.' => true,
+            ':' => true,
             '?' => true,
             '\\' => true,
             '#' => true,
@@ -187,17 +208,18 @@ public class Lexer{
 
     private bool IsOperatorSymbol(char c){
         return c switch{
-            '*' => true,
-            '/' => true,
             '+' => true,
             '-' => true,
+            '*' => true,
+            '/' => true,
+            '%' => true,
             '=' => true,
             '<' => true,
             '>' => true,
             '&' => true,
             '|' => true,
             '^' => true,
-            '%' => true,
+            
             '!' => true,
             _ => false,
         };
@@ -217,11 +239,12 @@ public class Lexer{
 
     private bool IsKeyword(string text){
         return text switch{
+            "func" => true,
             "return" => true,
+
             "continue" => true,
             "break" => true,
             "class" => true,
-            "func" => true,
             "for" => true,
             "foreach" => true,
             "while" => true,

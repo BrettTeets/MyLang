@@ -1,0 +1,26 @@
+func String[] args -> Main -> int{
+    
+    int[] array = [0..21] //build list from ranges.
+
+
+}
+
+func int[] arr -> ForLoopExample -> int[]{
+    //loops over a range of the array so you can
+    //mess with the index
+
+    for int i in 0..arr.length{
+        int x = arr[i];
+        int y = arr[i+1] ?? 0; //try to read from arr[i+1] and if it fails use zero.
+    }
+
+    return arr;
+}
+
+
+
+func int i -> ListComprehensionExample -> int[]{
+    
+    int[] arr = [i * afasdf]
+
+}
