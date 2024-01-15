@@ -185,6 +185,8 @@ public class Lexer{
             "->" => Token_Type.FlowOperator,
             "=" => Token_Type.Assignment,
             "=>" => Token_Type.DefiningOperator,
+            "<" => Token_Type.LessThan,
+            ">" => Token_Type.GreaterThan,
             _ => Token_Type.Error,
         };
         return token;

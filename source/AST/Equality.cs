@@ -1,5 +1,5 @@
-public class Equality: ASTNode{
-    public Equality(ASTNode left, ASTNode right){
+public class EqualityNode: ASTNode{
+    public EqualityNode(ASTNode left, ASTNode right){
         lhs = left;
         rhs = right;
     }

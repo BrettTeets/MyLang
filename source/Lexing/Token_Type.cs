@@ -28,4 +28,6 @@ public enum Token_Type{
     DefiningOperator,
     Seperator,
     EndStatement,
+    LessThan,
+    GreaterThan,
 }

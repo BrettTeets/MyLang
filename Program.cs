@@ -10,11 +10,19 @@ internal class Program
         Console.WriteLine("Hello, World!");
         Lexer l = new();
 
-        using (StreamReader reader = new StreamReader("VividMath.vd")){
+        List<Token> tokens = new();
+
+        using (StreamReader reader = new StreamReader("sample.vd")){
             foreach (Token token in l.Lex(reader))
             {
+                tokens.Add(token);
                 Console.WriteLine($"type: {token.type} = {token.text}");
             }
         }
+
+        Parser pare = new Parser(tokens);
+
+        Console.WriteLine(pare.root.ToString());
+
     }
 }

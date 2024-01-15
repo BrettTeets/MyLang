@@ -1,5 +1,5 @@
-public class Subtraction: ASTNode{
-    public Subtraction(ASTNode left, ASTNode right){
+public class SubtractionNode: ASTNode{
+    public SubtractionNode(ASTNode left, ASTNode right){
         lhs = left;
         rhs = right;
     }

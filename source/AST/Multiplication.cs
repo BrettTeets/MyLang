@@ -1,5 +1,5 @@
-public class Multiplication: ASTNode{
-    public Multiplication(ASTNode left, ASTNode right){
+public class MultiplicationNode: ASTNode{
+    public MultiplicationNode(ASTNode left, ASTNode right){
         lhs = left;
         rhs = right;
     }

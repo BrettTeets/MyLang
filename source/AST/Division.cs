@@ -1,5 +1,5 @@
-public class Division: ASTNode{
-    public Division(ASTNode left, ASTNode right){
+public class DivisionNode: ASTNode{
+    public DivisionNode(ASTNode left, ASTNode right){
         lhs = left;
         rhs = right;
     }

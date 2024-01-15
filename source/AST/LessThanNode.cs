@@ -1,5 +1,5 @@
-public class LessThan: ASTNode{
-    public LessThan(ASTNode left, ASTNode right){
+public class LessThanNode: ASTNode{
+    public LessThanNode(ASTNode left, ASTNode right){
         lhs = left;
         rhs = right;
     }

@@ -1,17 +1,16 @@
-func string[] args Main -> int{
-    int x = 4;
-    int y = 2;
+func string[] args -> Main -> int{
+    int x = 4, y = 2;
 
     //Not defining Print quite yet but it will be a standard function and accepts any input that can be turned into a string.
     x -> Print;
     y -> Print;
     2 + 3 -> Print;
 
-    x, y -> Add, 6 -> Equals -> Print;
+    x, y -> Add, 6 -> Equals -> Print; // add x and y then check if the result equals 6 and then print the resulting bool.
     x, y -> Sub, 2 -> Equals -> Print;
     x, y -> Mul, 8 -> Equals -> Print;
-    x, y -> Div:q, 2 -> Equals -> Print;
-    x, y -> Div:r, 0 -> Equals -> Print;
+    x, y -> Div:q, 2 -> Equals -> Print; //divided x by y and pass the quotient and 2 to equals and then print the resulting bool.
+    x, y -> Div:r, 0 -> Equals -> Print; //same as above by pass the remainder and 0 to equals and then print the resulting bool.
     x, y -> Pow, 16 -> Equals -> Print;
 }
 
@@ -26,6 +25,9 @@ func int a, int b -> Sub -> int{
 func int a, int b -> Mul -> int{
     return a * b;
 }
+
+
+//This returns two values. Every variable after the first must specify its name. so int, int r would be fine as well.
 
 func int a, int b -> Div -> int q, int r{
     return a / b, a % b;

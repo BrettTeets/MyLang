@@ -1,5 +1,5 @@
-public class Exponention: ASTNode{
-    public Exponention(ASTNode left, ASTNode right){
+public class ExponentionNode: ASTNode{
+    public ExponentionNode(ASTNode left, ASTNode right){
         lhs = left;
         rhs = right;
     }
