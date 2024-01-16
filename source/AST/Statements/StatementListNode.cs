@@ -9,7 +9,22 @@ public class StatementListNode : ASTNode{
 
     public override string ToString()
     {
-        return $"{left}, {right} ";
+        return $"{left} {right}";
+    }
+}
+
+public class ProgramListNode : ASTNode{
+    public ProgramListNode(ASTNode l, ASTNode r){
+        left = l;
+        right = r;
+    }
+
+    ASTNode left;
+    ASTNode right;
+
+    public override string ToString()
+    {
+        return $"{left} {right}";
     }
 }
 

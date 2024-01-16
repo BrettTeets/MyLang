@@ -8,7 +8,7 @@ public class Parser
     public ASTNode Parse(List<Token> allTokens, List<Token> structureTokens){
         AllTokens = allTokens;
         StructureTokens = structureTokens;
-        return ParseProgram();
+        return ParseProgram2();
     }
 
     public Token? Peek(int k){
@@ -45,17 +45,56 @@ public class Parser
         }
     }
 
-    public ASTNode ParseProgram(){
+    public ASTNode ParseProgram2(){
+
+        ASTNode a;
+
+        if(PeekAtType(0) == Token_Type.KeywordFunc){
+            a = ParseFunction();
+
+            if(Peek(0) != null){
+                a = new ProgramListNode(a, ParseProgram2());
+            }
+        }
+        else{
+            a = ParseStatement();
+
+            if(PeekAtType(0) == Token_Type.EndStatement){
+                Expect(Token_Type.EndStatement);
+                a = new ProgramListNode(a, ParseProgram2());
+            }
+        }
+        return a;
+    }
+
+    private ASTNode ParseFunction(){
+        Expect(Token_Type.KeywordFunc);
+        ASTNode args = ParseArguments();
+        if(Peek(0)?.type == Token_Type.FlowOperator){
+            Expect(Token_Type.FlowOperator);
+        }
+        ASTNode func = ParseIdentifier();
+        ASTNode output;
+        if(Peek(0)?.type == Token_Type.FlowOperator){
+            Expect(Token_Type.FlowOperator);
+            output = ParseReturns();
+        }
+        else{
+            output = new Blank();
+        }
+        Expect(Token_Type.OpenBrace);
+        ASTNode body = ParseCode();
+        Expect(Token_Type.ClosedBrace);
+        return new FuncDeclarationStatement(args, func, output, body);
+    }
+
+    public ASTNode ParseCode(){
         ASTNode a = ParseStatement();
         
         while(true){
             if(PeekAtType(0) == Token_Type.EndStatement){
                 Expect(Token_Type.EndStatement);
-                a = new StatementListNode(a, ParseProgram());
-            }
-            else if(PeekAtType(0) == Token_Type.ClosedBrace){
-                Expect(Token_Type.ClosedBrace);
-                a = new StatementListNode(a, ParseProgram());
+                a = new StatementListNode(a, ParseCode());
             }
             else{
                 return a;
@@ -83,26 +122,6 @@ public class Parser
             
             ASTNode e = ParseExpressions();
             return new VariableDeclarationStatement(t, i, e);
-        }
-        else if(Peek(0)?.type == Token_Type.KeywordFunc){
-            Expect(Token_Type.KeywordFunc);
-            ASTNode args = ParseArguments();
-            if(Peek(0)?.type == Token_Type.FlowOperator){
-                Expect(Token_Type.FlowOperator);
-            }
-            ASTNode func = ParseIdentifier();
-            ASTNode output;
-            if(Peek(0)?.type == Token_Type.FlowOperator){
-                Expect(Token_Type.FlowOperator);
-                output = ParseReturns();
-            }
-            else{
-                output = new Blank();
-            }
-            Expect(Token_Type.OpenBrace);
-            ASTNode body = ParseProgram();
-            //Expect(Token_Type.ClosedBrace);
-            return new FuncDeclarationStatement(args, func, output, body);
         }
         else if(Peek(0)?.type == Token_Type.KeywordReturn){
             Expect(Token_Type.KeywordReturn);
