@@ -125,6 +125,142 @@ public class Lexer{
 
     }
 
+    public (List<Token> AllTokens, List<Token> StructureTokens) Lex2(StreamReader stream){
+        bool CommentMode = false;
+        bool StringMode = false;
+
+        List<Token> allTokens = new();
+        List<Token> structureTokens = new();
+
+        Token token = new();
+
+        while(stream.EndOfStream is false){
+            
+            if(stream.Peek() != -1){
+                char c = (char)stream.Read();
+                char p = (char)stream.Peek();
+
+                //Once you are in a comment mode the only thing that can get you out is new line.
+                if(CommentMode){
+                    if(c == '\n') {
+                        CommentMode = false; 
+                        continue;
+                    }
+                    else {
+                        continue;
+                    }
+                }
+                else{
+                    //If you are not in comment mode or string mode and you read the comment characters enter comment mode.
+                    if(StringMode is false && c == '/' && p == '/'){
+                        stream.Read(); //consume that / you just peeked at.
+                        CommentMode = true; 
+                        continue;
+                    }
+                }
+
+                if(StringMode){
+                    if(c == '\\' && p == '"'){ 
+                        token.text += p; stream.Read(); //consume p, but discard c;
+                        continue;
+                    }
+                    if(c == '"'){
+                        token.text += c;
+                        StringMode = false;
+                        allTokens.Add(ParseString(token)); token = new(); 
+                        continue;
+                    }
+                    else{
+                        token.text += c;
+                        continue;
+                    }
+                }
+                else{
+                    if(c == '"'){
+                        if(token.IsTokenBeingBuilt()) {allTokens.Add(ParseToken(token)); token = new();}
+
+                        StringMode = true;
+                        token.text += c;
+                    }
+                    else if(c == '$' && p == '"'){
+                        if(token.IsTokenBeingBuilt()) {allTokens.Add(ParseToken(token)); token = new();}
+
+                        StringMode = true;
+                        token.text += c;
+                        token.text += p; stream.Read(); //consume p.
+                    }
+                    else if(c == '@' && p == '"'){
+                        if(token.IsTokenBeingBuilt()) {allTokens.Add(ParseToken(token)); token = new();}
+
+                        StringMode = true;
+                        token.text += c;
+                        token.text += p; stream.Read(); //consume p.
+                    }
+                }
+
+                if(char.IsWhiteSpace(c)){
+                    if(token.IsTokenBeingBuilt()) {allTokens.Add(ParseToken(token)); token = new();}
+                }
+
+                if(token.IsDigit()){
+                    if((c == '.' || c == 'x' || c == 'b' || c == '_') && char.IsDigit(p)){
+                        token.text += c;
+                        token.text += p; stream.Read(); //consume p.
+                        continue;
+                    }
+                }
+
+                if(IsBlockSymbol(c)){
+                    if(token.IsTokenBeingBuilt()) {allTokens.Add(ParseToken(token)); token = new();}
+
+                    token.text += c;
+                    Token t = ParseBlock(token);
+                    allTokens.Add(t); 
+                    structureTokens.Add(t);
+                    token = new();
+                    continue;
+                }
+
+                if(IsPunctuationSymbol(c)){
+                    if(token.IsTokenBeingBuilt()) {allTokens.Add(ParseToken(token)); token = new();}
+
+                    token.text += c;
+                    Token t = ParsePunctuation(token);
+                    allTokens.Add(t); 
+                    //structureTokens.Add(t);
+                    token = new();
+                    continue;
+                }
+
+                if(IsOperatorSymbol(c)){
+                    if(token.IsTokenBeingBuilt()) {allTokens.Add(ParseToken(token)); token = new();}
+
+                    token.text += c;
+                    if(IsOperatorSymbol(p)){
+                        token.text += p; stream.Read();
+                    }
+
+                    Token t = ParseOperator(token);
+                    allTokens.Add(t); 
+                    if(t.type == Token_Type.FlowOperator) structureTokens.Add(t);
+                    token = new();
+                    continue;
+                }
+
+                if(char.IsLetterOrDigit(c)){
+                    token.text += c;
+                    continue;
+                }
+            }
+            else if(token.text.Length > 0){
+                allTokens.Add(ParseToken(token));
+            }
+        }
+    
+        return (allTokens, structureTokens);
+
+    }
+
     private Token ParseToken(Token token){
         if(token.IsDigit()){
             if(token.IsHex()) token.type = Token_Type.Hexidecimal;
@@ -134,12 +270,21 @@ public class Lexer{
         }
         else{
             if(IsKeyword(token.text)){
-                token.type = Token_Type.Keyword;
+                token = ParseKeyword(token);
             }
             else{
                 token.type = Token_Type.Identifier;
             }
         }
+        return token;
+    }
+
+    private Token ParseKeyword(Token token){
+        token.type = token.text switch{
+            "let" => Token_Type.KeywordLet,
+            "var" => Token_Type.KeywordVar,
+            _ => Token_Type.Keyword,
+        };
         return token;
     }
 
@@ -166,6 +311,7 @@ public class Lexer{
         token.type = token.text switch{
             "," => Token_Type.Seperator,
             ";" => Token_Type.EndStatement,
+            ":" => Token_Type.Colon,
             _ => Token_Type.Error,
         };
 
@@ -196,9 +342,9 @@ public class Lexer{
         return c switch{
             ',' => true,
             ';' => true,
+            ':' => true,
 
             '.' => true,
-            ':' => true,
             '?' => true,
             '\\' => true,
             '#' => true,
@@ -243,6 +389,8 @@ public class Lexer{
         return text switch{
             "func" => true,
             "return" => true,
+            "var" => true,
+            "let" => true,
 
             "continue" => true,
             "break" => true,

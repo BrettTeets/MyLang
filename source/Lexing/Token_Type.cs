@@ -30,4 +30,7 @@ public enum Token_Type{
     EndStatement,
     LessThan,
     GreaterThan,
+    KeywordLet,
+    KeywordVar,
+    Colon,
 }

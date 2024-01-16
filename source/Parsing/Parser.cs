@@ -1,26 +1,31 @@
+using System.Runtime.CompilerServices;
+
 public class Parser
 {
-    List<Token> Tokens;
+    List<Token> AllTokens;
+    List<Token> StructureTokens;
     public ASTNode root;
 
-    public Parser(List<Token> tokens){
-        Tokens = tokens;
-        root = ParseExpression();
+    public Parser(List<Token> allTokens, List<Token> structureTokens){
+        AllTokens = allTokens;
+        StructureTokens = structureTokens;
+        root = ParseProgram();
     }
 
     public Token? Peek(int k){
-        if(Tokens.Count > k){
-            return Tokens[k];
+        if(AllTokens.Count > k){
+            return AllTokens[k];
         }
         else{
             return null;
         }
-        
     }
 
     public bool Expect(Token_Type t){
-        if(Tokens[0].type == t){
-            Tokens.RemoveAt(0);
+        Token_Type at = AllTokens[0].type;
+        if(at == t){
+            AllTokens.RemoveAt(0);
+            if(StructurePeek(0)?.type == at )StructureTokens.RemoveAt(0);
             return true;
         }
         else{
@@ -28,9 +33,86 @@ public class Parser
         }
     }
 
-    public ASTNode ParseExpression(){
+    public Token? StructurePeek(int k){
+        if(StructureTokens.Count > k){
+            return StructureTokens[k];
+        }
+        else{
+            return null;
+        }
+    }
+
+    public ASTNode ParseProgram(){
+        ASTNode a = ParseStatement();
+        
+        while(true){
+            if(Peek(0)?.type == Token_Type.EndStatement){
+                Expect(Token_Type.EndStatement);
+                a = new StatementListNode(a, ParseProgram());
+            }
+            else{
+                return a;
+            }
+        }
+    }
+
+    public ASTNode ParseStatement(){
+        if(Peek(0)?.type == Token_Type.KeywordLet){
+            Expect(Token_Type.KeywordLet);
+            ASTNode t = ParseIdentifier();
+            ASTNode i = ParseIdentifier();
+
+            Expect(Token_Type.Assignment);
+
+            ASTNode e = ParseExpressions();
+            return new LetDeclarationStatement(t, i, e);
+        }
+        else if(Peek(0)?.type == Token_Type.KeywordVar){
+            Expect(Token_Type.KeywordVar);
+            ASTNode t = ParseIdentifier();
+            ASTNode i = ParseIdentifier();
+
+            Expect(Token_Type.Assignment);
+            
+            ASTNode e = ParseExpressions();
+            return new VariableDeclarationStatement(t, i, e);
+        }
+        else{
+            return new Blank();
+        }
+    }
+
+    public ASTNode ParseExpressions(bool flow = false){
         //Token? t = Peek(0);
 
+        ASTNode a = ParseExpression(flow);
+
+        while(true){
+            if(Peek(0)?.type == Token_Type.Seperator){
+                Expect(Token_Type.Seperator);
+                a = new AmbigiousExpressionListNode(a, ParseExpressions(false));
+            }
+            if(Peek(0)?.type == Token_Type.FlowOperator){
+                Expect(Token_Type.FlowOperator);
+                a = new AmbigiousExpressionListNode(a, ParseExpressions(true));
+            }
+            else{
+                return a;
+            }
+        }
+    }
+
+    public ASTNode ParseExpression(bool flow){
+        if(flow is false){
+            return ParseTermA();
+        }
+        else{
+            Expect(Token_Type.FlowOperator);
+            return new AmbigiousFuncNode(ParseIdentifier());
+        }
+    }
+
+    public ASTNode ParseTermA(){
         ASTNode a = ParseTermM();
 
         while(true){
@@ -97,18 +179,23 @@ public class Parser
         }   
         else if(Peek(0)?.type == Token_Type.OpenParen){
             Expect(Token_Type.OpenParen);
-            ASTNode n = ParseExpression();
+            ASTNode n = ParseExpressions();
             Expect(Token_Type.OpenParen);
             return n;
         }
         if(Peek(0)?.type == Token_Type.Identifier){
-            string s = Peek(0)?.text ?? "";
-            Expect(Token_Type.Identifier);
-            return new IdentifierNode(s);
+            return ParseIdentifier();
         }
         else{
-            throw new Exception();
+            Token? t = Peek(0);
+            throw new Exception($"Error on {t} for a factor");
         }
+    }
+
+    private ASTNode ParseIdentifier(){
+        string s = Peek(0)?.text ?? "";
+        Expect(Token_Type.Identifier);
+        return new IdentifierNode(s);
     }
 
     

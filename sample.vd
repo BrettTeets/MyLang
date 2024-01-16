@@ -1,4 +1,9 @@
-7^2 - 5 * 3 + 13 - x
+let int x = 2;
+var float y = 2;
+
+func int a, int b -> Div -> int q, int r{
+    return a / b, a % b;
+}
 
 
 
