@@ -1,20 +1,26 @@
-using System.Runtime.CompilerServices;
-
 public class Parser
 {
-    List<Token> AllTokens;
-    List<Token> StructureTokens;
-    public ASTNode root;
+    List<Token> AllTokens = new();
+    List<Token> StructureTokens = new();
 
-    public Parser(List<Token> allTokens, List<Token> structureTokens){
+    public ASTNode Parse(List<Token> allTokens, List<Token> structureTokens){
         AllTokens = allTokens;
         StructureTokens = structureTokens;
-        root = ParseProgram();
+        return ParseProgram();
     }
 
     public Token? Peek(int k){
         if(AllTokens.Count > k){
             return AllTokens[k];
+        }
+        else{
+            return null;
+        }
+    }
+
+    public Token? StructurePeek(int k){
+        if(StructureTokens.Count > k){
+            return StructureTokens[k];
         }
         else{
             return null;
@@ -33,14 +39,7 @@ public class Parser
         }
     }
 
-    public Token? StructurePeek(int k){
-        if(StructureTokens.Count > k){
-            return StructureTokens[k];
-        }
-        else{
-            return null;
-        }
-    }
+    
 
     public ASTNode ParseProgram(){
         ASTNode a = ParseStatement();
@@ -77,9 +76,72 @@ public class Parser
             ASTNode e = ParseExpressions();
             return new VariableDeclarationStatement(t, i, e);
         }
+        else if(Peek(0)?.type == Token_Type.KeywordFunc){
+            Expect(Token_Type.KeywordFunc);
+            ASTNode args = ParseArguments();
+            if(Peek(0)?.type == Token_Type.FlowOperator){
+                Expect(Token_Type.FlowOperator);
+            }
+            ASTNode func = ParseIdentifier();
+            ASTNode output;
+            if(Peek(0)?.type == Token_Type.FlowOperator){
+                Expect(Token_Type.FlowOperator);
+                output = ParseReturns();
+            }
+            else{
+                output = new Blank();
+            }
+            Expect(Token_Type.OpenBrace);
+            ASTNode body = ParseProgram();
+            Expect(Token_Type.ClosedBrace);
+            return new FuncDeclarationStatement(args, func, output, body);
+        }
+        else if(Peek(0)?.type == Token_Type.KeywordReturn){
+            Expect(Token_Type.KeywordReturn);
+            ASTNode e = ParseExpressions();
+            return new ReturnStatement(e);
+        }
         else{
             return new Blank();
         }
+    }
+
+    private ASTNode ParseArguments(){
+        if(StructurePeek(0)?.type == Token_Type.FlowOperator && Peek(0)?.type != Token_Type.FlowOperator){
+            ASTNode a = ParseArgument();
+            while(true){
+                if(Peek(0)?.type == Token_Type.Seperator){
+                    Expect(Token_Type.Seperator);
+                    a = new ArgumentListNode(a, ParseArguments());
+                }
+                else{
+                    return a;
+                }
+            }
+        }
+        else{
+            return new Blank();
+        }
+    }
+
+    private ASTNode ParseReturns(){
+        ASTNode a = ParseArgument();
+        while(true){
+            if(Peek(0)?.type == Token_Type.Seperator){
+                Expect(Token_Type.Seperator);
+                a = new ArgumentListNode(a, ParseReturns());
+            }
+            else{
+                return a;
+            }
+        }
+    }
+
+    private ASTNode ParseArgument(){
+        ASTNode t = ParseIdentifier();
+        ASTNode i = ParseIdentifier();
+        return new ArgumentNode(t, i);
+
     }
 
     public ASTNode ParseExpressions(bool flow = false){
@@ -146,7 +208,12 @@ public class Parser
             else if(Peek(0)?.type == Token_Type.Division){
                 Expect(Token_Type.Division);
                 ASTNode b = ParseTermC();
-                a = new MultiplicationNode(a, b);
+                a = new DivisionNode(a, b);
+            }
+            else if(Peek(0)?.type == Token_Type.Modulus){
+                Expect(Token_Type.Modulus);
+                ASTNode b = ParseTermC();
+                a = new ModulusNode(a, b);
             }
             else{
                 return a;

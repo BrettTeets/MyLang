@@ -283,6 +283,8 @@ public class Lexer{
         token.type = token.text switch{
             "let" => Token_Type.KeywordLet,
             "var" => Token_Type.KeywordVar,
+            "func" => Token_Type.KeywordFunc,
+            "return" => Token_Type.KeywordReturn,
             _ => Token_Type.Keyword,
         };
         return token;

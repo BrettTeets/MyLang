@@ -33,4 +33,6 @@ public enum Token_Type{
     KeywordLet,
     KeywordVar,
     Colon,
+    KeywordFunc,
+    KeywordReturn,
 }
