@@ -1,5 +1,3 @@
-
-
 public class AmbigiousFuncNode : ASTNode{
     public AmbigiousFuncNode(ASTNode r){
         func = r;

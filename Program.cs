@@ -18,9 +18,10 @@
             }
         }
 
-        Parser pare = new Parser(tokens, stoks);
+        Parser pare = new Parser();
+        ASTNode n = pare.Parse(tokens, stoks);
 
-        Console.WriteLine(pare.root.ToString());
+        Console.WriteLine(n.ToString());
 
     }
 }

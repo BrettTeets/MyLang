@@ -1,3 +1,5 @@
+using System.Security.Cryptography.X509Certificates;
+
 public class Parser
 {
     List<Token> AllTokens = new();
@@ -16,6 +18,10 @@ public class Parser
         else{
             return null;
         }
+    }
+
+    public Token_Type? PeekAtType(int k){
+        return Peek(k)?.type;
     }
 
     public Token? StructurePeek(int k){
@@ -39,14 +45,16 @@ public class Parser
         }
     }
 
-    
-
     public ASTNode ParseProgram(){
         ASTNode a = ParseStatement();
         
         while(true){
-            if(Peek(0)?.type == Token_Type.EndStatement){
+            if(PeekAtType(0) == Token_Type.EndStatement){
                 Expect(Token_Type.EndStatement);
+                a = new StatementListNode(a, ParseProgram());
+            }
+            else if(PeekAtType(0) == Token_Type.ClosedBrace){
+                Expect(Token_Type.ClosedBrace);
                 a = new StatementListNode(a, ParseProgram());
             }
             else{
@@ -93,7 +101,7 @@ public class Parser
             }
             Expect(Token_Type.OpenBrace);
             ASTNode body = ParseProgram();
-            Expect(Token_Type.ClosedBrace);
+            //Expect(Token_Type.ClosedBrace);
             return new FuncDeclarationStatement(args, func, output, body);
         }
         else if(Peek(0)?.type == Token_Type.KeywordReturn){
