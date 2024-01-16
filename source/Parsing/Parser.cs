@@ -31,17 +31,17 @@ public class Parser
     public ASTNode ParseExpression(){
         //Token? t = Peek(0);
 
-        ASTNode a = ParseTermMD();
+        ASTNode a = ParseTermM();
 
         while(true){
             if(Peek(0)?.type == Token_Type.Addition){
                 Expect(Token_Type.Addition);
-                ASTNode b = ParseTermMD();
+                ASTNode b = ParseTermM();
                 a = new AdditionNode(a, b);
             }
             else if(Peek(0)?.type == Token_Type.Subtraction){
                 Expect(Token_Type.Subtraction);
-                ASTNode b = ParseTermMD();
+                ASTNode b = ParseTermM();
                 a = new SubtractionNode(a, b);
             }
             else{
@@ -50,20 +50,20 @@ public class Parser
         }
     }
 
-    public ASTNode ParseTermMD(){
+    public ASTNode ParseTermM(){
         //Token? t = Peek(0);
 
-        ASTNode a = ParseTermE();
+        ASTNode a = ParseTermC();
         
         while(true){
             if(Peek(0)?.type == Token_Type.Multiplication){
                 Expect(Token_Type.Multiplication);
-                ASTNode b = ParseTermE();
+                ASTNode b = ParseTermC();
                 a = new MultiplicationNode(a, b);
             }
             else if(Peek(0)?.type == Token_Type.Division){
                 Expect(Token_Type.Division);
-                ASTNode b = ParseTermE();
+                ASTNode b = ParseTermC();
                 a = new MultiplicationNode(a, b);
             }
             else{
@@ -72,7 +72,7 @@ public class Parser
         }
     }
 
-    public ASTNode ParseTermE(){
+    public ASTNode ParseTermC(){
         ASTNode a = ParseFactor();
 
         while(true){
@@ -100,6 +100,11 @@ public class Parser
             ASTNode n = ParseExpression();
             Expect(Token_Type.OpenParen);
             return n;
+        }
+        if(Peek(0)?.type == Token_Type.Identifier){
+            string s = Peek(0)?.text ?? "";
+            Expect(Token_Type.Identifier);
+            return new IdentifierNode(s);
         }
         else{
             throw new Exception();
