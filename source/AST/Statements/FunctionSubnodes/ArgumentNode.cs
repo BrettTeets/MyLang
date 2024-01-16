@@ -9,7 +9,7 @@ public class ArgumentNode : ASTNode{
 
     public override string ToString()
     {
-        return $"({type} {id}) ";
+        return $"{type} {id}";
     }
 
 }

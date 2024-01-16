@@ -13,7 +13,7 @@ public class FuncDeclarationStatement : ASTNode{
 
     public override string ToString()
     {
-        return $"(func {args} -> {id} = {returns} {{{program})}}";
+        return $"func {args} -> {id} -> {returns} {{{program}}}";
     }
 
 }

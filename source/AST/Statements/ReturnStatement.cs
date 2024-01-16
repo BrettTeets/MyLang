@@ -7,7 +7,7 @@ public class ReturnStatement : ASTNode{
 
     public override string ToString()
     {
-        return $"(return {expressions}";
+        return $"return {expressions};";
     }
 }
 

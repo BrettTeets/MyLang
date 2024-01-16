@@ -9,7 +9,7 @@ public class ArgumentListNode : ASTNode{
 
     public override string ToString()
     {
-        return $"({left}), ({right}) ";
+        return $"{left}, {right} ";
     }
 }
 

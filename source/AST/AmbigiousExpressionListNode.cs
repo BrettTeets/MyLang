@@ -9,7 +9,7 @@ public class AmbigiousExpressionListNode : ASTNode{
 
     public override string ToString()
     {
-        return $"({left}), ({right}) ";
+        return $"{left}, {right} ";
     }
 }
 

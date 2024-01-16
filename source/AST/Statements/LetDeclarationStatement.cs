@@ -11,7 +11,7 @@ public class LetDeclarationStatement : ASTNode{
 
     public override string ToString()
     {
-        return $"(let {type} {id} = {expression}) ";
+        return $"let {type} {id} = {expression}; ";
     }
 
 }

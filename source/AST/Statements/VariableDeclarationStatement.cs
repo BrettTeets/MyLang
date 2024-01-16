@@ -11,7 +11,7 @@ public class VariableDeclarationStatement : ASTNode{
 
     public override string ToString()
     {
-        return $"(var {type} {id} = {expression}) ";
+        return $"var {type} {id} = {expression}; ";
     }
 
 }
