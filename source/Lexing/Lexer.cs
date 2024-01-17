@@ -216,7 +216,10 @@ public class Lexer{
                     token.text += c;
                     Token t = ParseBlock(token);
                     allTokens.Add(t); 
-                    structureTokens.Add(t);
+                    if(t.type != Token_Type.OpenBox && t.type != Token_Type.ClosedBox){
+                        structureTokens.Add(t);
+                    }
+                    
                     token = new();
                     continue;
                 }

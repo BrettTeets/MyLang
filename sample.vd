@@ -1,8 +1,13 @@
+func string[] args -> Main -> int n{
+    //"Hello World!" -> Print;
+    return 0;
+}
+
 func int a, int b -> Div -> int q, int r{
     let int x = 2;
     var float y = 2;
     return a / b, a % b;
-};
+}
 
 func int a -> Square -> int b{
     return a^2;
@@ -14,10 +19,7 @@ func Yolo -> int l{
 
 
 
-//func string[] args -> Main -> int{
-//    "Hello World!" -> Print;
-//    return 0;
-//}
+
 
 
 

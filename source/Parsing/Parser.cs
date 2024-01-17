@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
 public class Parser
@@ -46,24 +47,27 @@ public class Parser
     }
 
     public ASTNode ParseProgram(){
+        ASTNode a = new Blank();
 
-        ASTNode a;
+        switch (PeekAtType(0)){
+            case Token_Type.KeywordFunc:
+                a = ParseFunction();
+                GetNextProgram();
+                break;
+            case Token_Type.EndStatement:
+                a = ParseStatement();
+                GetNextProgram();
+                break;
+            default:
+                break;
+        }
 
-        if(PeekAtType(0) == Token_Type.KeywordFunc){
-            a = ParseFunction();
-
-            if(Peek(0) != null){
+        void GetNextProgram(){
+            if(Peek(0) is not null){
                 a = new ProgramListNode(a, ParseProgram());
             }
         }
-        else{
-            a = ParseStatement();
 
-            if(PeekAtType(0) == Token_Type.EndStatement){
-                Expect(Token_Type.EndStatement);
-                a = new ProgramListNode(a, ParseProgram());
-            }
-        }
         return a;
     }
 
@@ -73,8 +77,8 @@ public class Parser
         ASTNode args = new Blank("NOARGS");
         ASTNode func;
 
-        //This must be type var declaration.
-        if(PeekAtType(0) == Token_Type.Identifier && PeekAtType(1) == Token_Type.Identifier){
+        //This must be type var declaration, func name -> type var { and func name { would not have two identifiers back to back.
+        if(PeekAtType(0) == Token_Type.Identifier && (PeekAtType(1) == Token_Type.Identifier || PeekAtType(1) == Token_Type.OpenBox)){
             args = ParseArguments();
             Expect(Token_Type.FlowOperator);
         }
@@ -90,16 +94,16 @@ public class Parser
         Expect(Token_Type.OpenBrace);
         ASTNode body = ParseCode();
         Expect(Token_Type.ClosedBrace);
-        
+
         return new FuncDeclarationStatement(args, func, output, body);
     }
 
+    //This is what occurs inside of functions. It does not support functions delcared inside yet.
     public ASTNode ParseCode(){
         ASTNode a = ParseStatement();
         
         while(true){
-            if(PeekAtType(0) == Token_Type.EndStatement){
-                Expect(Token_Type.EndStatement);
+            if(TokenStartsStatement(PeekAtType(0) ?? Token_Type.None)){
                 a = new StatementListNode(a, ParseCode());
             }
             else{
@@ -108,30 +112,34 @@ public class Parser
         }
     }
 
+    private bool TokenStartsStatement(Token_Type t){
+        return t switch{
+            Token_Type.KeywordLet => true,
+            Token_Type.KeywordVar => true,
+            Token_Type.KeywordReturn => true,
+            _ => false,
+        };
+    }
+
     public ASTNode ParseStatement(){
         if(Peek(0)?.type == Token_Type.KeywordLet){
-            Expect(Token_Type.KeywordLet);
-            ASTNode t = ParseIdentifier();
-            ASTNode i = ParseIdentifier();
-
-            Expect(Token_Type.Assignment);
-
-            ASTNode e = ParseExpressions();
-            return new LetDeclarationStatement(t, i, e);
+            return ParseLetStatement();
         }
         else if(Peek(0)?.type == Token_Type.KeywordVar){
             Expect(Token_Type.KeywordVar);
-            ASTNode t = ParseIdentifier();
+            ASTNode t = ParseTypeID();
             ASTNode i = ParseIdentifier();
 
             Expect(Token_Type.Assignment);
             
             ASTNode e = ParseExpressions();
+            Expect(Token_Type.EndStatement);
             return new VariableDeclarationStatement(t, i, e);
         }
         else if(Peek(0)?.type == Token_Type.KeywordReturn){
             Expect(Token_Type.KeywordReturn);
             ASTNode e = ParseExpressions();
+            Expect(Token_Type.EndStatement);
             return new ReturnStatement(e);
         }
         else{
@@ -139,7 +147,22 @@ public class Parser
         }
     }
 
+    private ASTNode ParseLetStatement(){
+        Expect(Token_Type.KeywordLet);
+        ASTNode type = ParseTypeID();
+        ASTNode id = ParseIdentifier();
+
+        Expect(Token_Type.Assignment);
+
+        ASTNode expr = ParseExpressions();
+        Expect(Token_Type.EndStatement);
+        return new LetDeclarationStatement(type, id, expr);
+    }
+
+    
+
     private ASTNode ParseArguments(){
+        Token? ttt = StructurePeek(0);
         if(StructurePeek(0)?.type == Token_Type.FlowOperator && Peek(0)?.type != Token_Type.FlowOperator){
             ASTNode a = ParseArgument();
             while(true){
@@ -171,7 +194,7 @@ public class Parser
     }
 
     private ASTNode ParseArgument(){
-        ASTNode t = ParseIdentifier();
+        ASTNode t = ParseTypeID();
         ASTNode i = ParseIdentifier();
         return new ArgumentNode(t, i);
 
@@ -296,6 +319,23 @@ public class Parser
         string s = Peek(0)?.text ?? "";
         Expect(Token_Type.Identifier);
         return new IdentifierNode(s);
+    }
+
+    private ASTNode ParseTypeID(){
+        string s = Peek(0)?.text ?? "";
+        Expect(Token_Type.Identifier);
+
+        Token? a = Peek(0);
+        Token? b = Peek(1);
+
+        if(PeekAtType(0) == Token_Type.OpenBox && PeekAtType(1) == Token_Type.ClosedBox){
+            Expect(Token_Type.OpenBox);
+            Expect(Token_Type.ClosedBox);
+            return new TypeIDNode(s, true);
+        }
+        else{
+            return new TypeIDNode(s, false);
+        }
     }
 
     
