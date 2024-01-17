@@ -8,7 +8,7 @@ public class Parser
     public ASTNode Parse(List<Token> allTokens, List<Token> structureTokens){
         AllTokens = allTokens;
         StructureTokens = structureTokens;
-        return ParseProgram2();
+        return ParseProgram();
     }
 
     public Token? Peek(int k){
@@ -45,7 +45,7 @@ public class Parser
         }
     }
 
-    public ASTNode ParseProgram2(){
+    public ASTNode ParseProgram(){
 
         ASTNode a;
 
@@ -53,7 +53,7 @@ public class Parser
             a = ParseFunction();
 
             if(Peek(0) != null){
-                a = new ProgramListNode(a, ParseProgram2());
+                a = new ProgramListNode(a, ParseProgram());
             }
         }
         else{
@@ -61,7 +61,7 @@ public class Parser
 
             if(PeekAtType(0) == Token_Type.EndStatement){
                 Expect(Token_Type.EndStatement);
-                a = new ProgramListNode(a, ParseProgram2());
+                a = new ProgramListNode(a, ParseProgram());
             }
         }
         return a;
@@ -69,22 +69,28 @@ public class Parser
 
     private ASTNode ParseFunction(){
         Expect(Token_Type.KeywordFunc);
-        ASTNode args = ParseArguments();
-        if(Peek(0)?.type == Token_Type.FlowOperator){
+
+        ASTNode args = new Blank("NOARGS");
+        ASTNode func;
+
+        //This must be type var declaration.
+        if(PeekAtType(0) == Token_Type.Identifier && PeekAtType(1) == Token_Type.Identifier){
+            args = ParseArguments();
             Expect(Token_Type.FlowOperator);
         }
-        ASTNode func = ParseIdentifier();
-        ASTNode output;
+
+        func = ParseIdentifier();
+
+        ASTNode output = new Blank("NORETURN");
         if(Peek(0)?.type == Token_Type.FlowOperator){
             Expect(Token_Type.FlowOperator);
             output = ParseReturns();
         }
-        else{
-            output = new Blank();
-        }
+
         Expect(Token_Type.OpenBrace);
         ASTNode body = ParseCode();
         Expect(Token_Type.ClosedBrace);
+        
         return new FuncDeclarationStatement(args, func, output, body);
     }
 

@@ -8,6 +8,10 @@ func int a -> Square -> int b{
     return a^2;
 }
 
+func Yolo -> int l{
+    return 7;
+}
+
 
 
 //func string[] args -> Main -> int{
