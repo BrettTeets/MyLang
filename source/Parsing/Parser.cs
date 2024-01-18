@@ -47,6 +47,7 @@ public partial class Parser
         }
     }
 
+    //Called at the top level to get this started and inside functions.
     public ASTNode ParseProgram(){
         ASTNode a = new Blank();
 
@@ -86,7 +87,7 @@ public partial class Parser
             Expect(Token_Type.FlowOperator);
         }
 
-        func = ParseIdentifier()  ?? new Error("No Func Id");
+        func = ParseIdentifier();
         
         if(Peek(0)?.type == Token_Type.FlowOperator){
             Expect(Token_Type.FlowOperator);
@@ -159,17 +160,7 @@ public partial class Parser
         }
     }
 
-    private ASTNode ParseLetStatement(){
-        Expect(Token_Type.KeywordLet);
-        ASTNode type = ParseTypeID();
-        ASTNode id = ParseIdentifier();
-
-        Expect(Token_Type.Assignment);
-
-        ASTNode expr = ParseExpressions();
-        Expect(Token_Type.EndStatement);
-        return new LetDeclarationStatement(type, id, expr);
-    }
+    
 
     
 
@@ -296,34 +287,4 @@ public partial class Parser
             throw new Exception($"Error on {t} for a factor");
         }
     }
-
-    private ASTNode? ParseIdentifier(){
-        string s = Peek(0)?.text ?? "";
-        if(Expect(Token_Type.Identifier)){
-            return new IdentifierNode(s);
-        }
-        else{
-            return null;
-        }
-        
-    }
-
-    private ASTNode ParseTypeID(){
-        string s = Peek(0)?.text ?? "";
-        Expect(Token_Type.Identifier);
-
-        Token? a = Peek(0);
-        Token? b = Peek(1);
-
-        if(PeekAtType(0) == Token_Type.OpenBox && PeekAtType(1) == Token_Type.ClosedBox){
-            Expect(Token_Type.OpenBox);
-            Expect(Token_Type.ClosedBox);
-            return new TypeIDNode(s, true);
-        }
-        else{
-            return new TypeIDNode(s, false);
-        }
-    }
-
-    
 }
