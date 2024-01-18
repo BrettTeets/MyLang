@@ -1,7 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
-public class Parser
+public partial class Parser
 {
     List<Token> AllTokens = new();
     List<Token> StructureTokens = new();
@@ -49,76 +50,87 @@ public class Parser
     public ASTNode ParseProgram(){
         ASTNode a = new Blank();
 
-        switch (PeekAtType(0)){
-            case Token_Type.KeywordFunc:
-                a = ParseFunction();
-                GetNextProgram();
-                break;
-            case Token_Type.EndStatement:
-                a = ParseStatement();
-                GetNextProgram();
-                break;
-            default:
-                break;
+        if(PeekAtType(0) == Token_Type.KeywordFunc){
+            a = ParseFunctionDeclaration();
+            GetNextProgram();
+        }
+        else if(NextTokenIsStatement()){
+            a = ParseStatement();
+            GetNextProgram();
+        }
+        else{
+            return a;
         }
 
         void GetNextProgram(){
             if(Peek(0) is not null){
-                a = new ProgramListNode(a, ParseProgram());
+                if(PeekAtType(0) == Token_Type.KeywordFunc || NextTokenIsStatement()){
+                    a = new ProgramListNode(a, ParseProgram());
+                }
             }
         }
 
         return a;
     }
 
-    private ASTNode ParseFunction(){
+    private ASTNode ParseFunctionDeclaration(){
         Expect(Token_Type.KeywordFunc);
 
         ASTNode args = new Blank("NOARGS");
         ASTNode func;
+        ASTNode output = new Blank("NORETURN");
+        ASTNode body;
 
-        //This must be type var declaration, func name -> type var { and func name { would not have two identifiers back to back.
-        if(PeekAtType(0) == Token_Type.Identifier && (PeekAtType(1) == Token_Type.Identifier || PeekAtType(1) == Token_Type.OpenBox)){
-            args = ParseArguments();
+        if(NextTokenIsTypedVar()){
+            args = ParseArgumentsInFuncDecl();
             Expect(Token_Type.FlowOperator);
         }
 
-        func = ParseIdentifier();
-
-        ASTNode output = new Blank("NORETURN");
+        func = ParseIdentifier()  ?? new Error("No Func Id");
+        
         if(Peek(0)?.type == Token_Type.FlowOperator){
             Expect(Token_Type.FlowOperator);
-            output = ParseReturns();
+            output = ParseReturnsInFuncDecl();
         }
 
         Expect(Token_Type.OpenBrace);
-        ASTNode body = ParseCode();
+        body = ParseProgram();
         Expect(Token_Type.ClosedBrace);
 
         return new FuncDeclarationStatement(args, func, output, body);
     }
 
-    //This is what occurs inside of functions. It does not support functions delcared inside yet.
-    public ASTNode ParseCode(){
-        ASTNode a = ParseStatement();
-        
+    //This needs to confirm type x, type x, ... ends in a -> using the structure list.
+    private ASTNode ParseArgumentsInFuncDecl(){
+        if(IsNearAFlowButNextTokenIsNotAFlow()){
+            ASTNode a = ParseArgument();
+            while(true){
+                if(Peek(0)?.type == Token_Type.Seperator){
+                    Expect(Token_Type.Seperator);
+                    a = new ArgumentListNode(a, ParseArgumentsInFuncDecl());
+                }
+                else{
+                    return a;
+                }
+            }
+        }
+        else{
+            return new Error("Expected a ->");
+        }
+    }
+
+    //This can be simpler because  its only getting called after "funcName ->"
+    private ASTNode ParseReturnsInFuncDecl(){
+        ASTNode a = ParseArgument();
         while(true){
-            if(TokenStartsStatement(PeekAtType(0) ?? Token_Type.None)){
-                a = new StatementListNode(a, ParseCode());
+            if(Peek(0)?.type == Token_Type.Seperator){
+                Expect(Token_Type.Seperator);
+                a = new ArgumentListNode(a, ParseReturnsInFuncDecl());
             }
             else{
                 return a;
             }
         }
-    }
-
-    private bool TokenStartsStatement(Token_Type t){
-        return t switch{
-            Token_Type.KeywordLet => true,
-            Token_Type.KeywordVar => true,
-            Token_Type.KeywordReturn => true,
-            _ => false,
-        };
     }
 
     public ASTNode ParseStatement(){
@@ -161,37 +173,7 @@ public class Parser
 
     
 
-    private ASTNode ParseArguments(){
-        Token? ttt = StructurePeek(0);
-        if(StructurePeek(0)?.type == Token_Type.FlowOperator && Peek(0)?.type != Token_Type.FlowOperator){
-            ASTNode a = ParseArgument();
-            while(true){
-                if(Peek(0)?.type == Token_Type.Seperator){
-                    Expect(Token_Type.Seperator);
-                    a = new ArgumentListNode(a, ParseArguments());
-                }
-                else{
-                    return a;
-                }
-            }
-        }
-        else{
-            return new Blank();
-        }
-    }
-
-    private ASTNode ParseReturns(){
-        ASTNode a = ParseArgument();
-        while(true){
-            if(Peek(0)?.type == Token_Type.Seperator){
-                Expect(Token_Type.Seperator);
-                a = new ArgumentListNode(a, ParseReturns());
-            }
-            else{
-                return a;
-            }
-        }
-    }
+    
 
     private ASTNode ParseArgument(){
         ASTNode t = ParseTypeID();
@@ -315,10 +297,15 @@ public class Parser
         }
     }
 
-    private ASTNode ParseIdentifier(){
+    private ASTNode? ParseIdentifier(){
         string s = Peek(0)?.text ?? "";
-        Expect(Token_Type.Identifier);
-        return new IdentifierNode(s);
+        if(Expect(Token_Type.Identifier)){
+            return new IdentifierNode(s);
+        }
+        else{
+            return null;
+        }
+        
     }
 
     private ASTNode ParseTypeID(){

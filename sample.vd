@@ -1,11 +1,18 @@
 func string[] args -> Main -> int n{
-    //"Hello World!" -> Print;
+    //    |> "Hello World!" -> Print;
+    //    |> Tick;
+    //x   |= Get;
+
+    //    do "Hello World!" -> Print;
+    //    do Tick;
+    //x   set Get;
+    
     return 0;
 }
 
 func int a, int b -> Div -> int q, int r{
-    let int x = 2;
-    var float y = 2;
+    let int x := 2;
+    var float y := 2;
     return a / b, a % b;
 }
 

@@ -35,4 +35,8 @@ public enum Token_Type{
     Colon,
     KeywordFunc,
     KeywordReturn,
+    NoFlowOperator,
+    LogicalOR,
+    LogicalAnd,
+    Reassignment,
 }

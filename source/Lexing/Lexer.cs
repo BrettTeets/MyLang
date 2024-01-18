@@ -316,7 +316,6 @@ public class Lexer{
         token.type = token.text switch{
             "," => Token_Type.Seperator,
             ";" => Token_Type.EndStatement,
-            ":" => Token_Type.Colon,
             _ => Token_Type.Error,
         };
 
@@ -334,7 +333,11 @@ public class Lexer{
             "%" => Token_Type.Modulus,
             "^" => Token_Type.Exponention,
             "->" => Token_Type.FlowOperator,
-            "=" => Token_Type.Assignment,
+            "|>" => Token_Type.NoFlowOperator,
+            "||" => Token_Type.LogicalOR,
+            "&&" => Token_Type.LogicalAnd,
+            ":=" => Token_Type.Assignment,
+            "|=" => Token_Type.Reassignment,
             "=>" => Token_Type.DefiningOperator,
             "<" => Token_Type.LessThan,
             ">" => Token_Type.GreaterThan,
@@ -347,7 +350,6 @@ public class Lexer{
         return c switch{
             ',' => true,
             ';' => true,
-            ':' => true,
 
             '.' => true,
             '?' => true,
@@ -372,8 +374,8 @@ public class Lexer{
             '&' => true,
             '|' => true,
             '^' => true,
-            
             '!' => true,
+            ':' => true,
             _ => false,
         };
     }
