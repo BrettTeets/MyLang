@@ -1,5 +1,5 @@
-public class Blank: ASTNode{
-    public Blank(string s = "EOF"){
+public class Error: ASTNode{
+    public Error(string s = "err"){
         message = s;
     }
 

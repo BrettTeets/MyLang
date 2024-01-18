@@ -135,36 +135,25 @@ public partial class Parser
     }
 
     public ASTNode ParseStatement(){
-        if(Peek(0)?.type == Token_Type.KeywordLet){
+        if(PeekAtType(0) == Token_Type.KeywordLet){
             return ParseLetStatement();
         }
-        else if(Peek(0)?.type == Token_Type.KeywordVar){
-            Expect(Token_Type.KeywordVar);
-            ASTNode t = ParseTypeID();
-            ASTNode i = ParseIdentifier();
-
-            Expect(Token_Type.Assignment);
-            
-            ASTNode e = ParseExpressions();
-            Expect(Token_Type.EndStatement);
-            return new VariableDeclarationStatement(t, i, e);
+        else if(PeekAtType(0) == Token_Type.KeywordVar){
+            return ParseVarStatement();
         }
-        else if(Peek(0)?.type == Token_Type.KeywordReturn){
-            Expect(Token_Type.KeywordReturn);
-            ASTNode e = ParseExpressions();
-            Expect(Token_Type.EndStatement);
-            return new ReturnStatement(e);
+        else if(PeekAtType(0) == Token_Type.KeywordReturn){
+            return ParseReturnStatement();
+        }
+        else if(PeekAtType(0) == Token_Type.NoFlowOperator){
+            return ParseDoStatement();
+        }
+        else if(PeekAtType(1) == Token_Type.Reassignment){
+            return ParseSetStatement();
         }
         else{
-            return new Blank();
+            return new Error("Expected a Statement");
         }
     }
-
-    
-
-    
-
-    
 
     private ASTNode ParseArgument(){
         ASTNode t = ParseTypeID();
@@ -174,8 +163,6 @@ public partial class Parser
     }
 
     public ASTNode ParseExpressions(bool flow = false){
-        //Token? t = Peek(0);
-
         ASTNode a = ParseExpression(flow);
 
         while(true){

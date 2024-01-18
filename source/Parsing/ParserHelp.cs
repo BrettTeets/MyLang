@@ -11,8 +11,8 @@ public partial class Parser{
             case Token_Type.NoFlowOperator:
                 return true;
             case Token_Type.Identifier:
-                //this is something like "x = expr;"
-                if(PeekAtType(1) == Token_Type.Assignment) return true;
+                //this is something like "x |= expr;"
+                if(PeekAtType(1) == Token_Type.Reassignment) return true;
                 return false;
             default:
                 return false;

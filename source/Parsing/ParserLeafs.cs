@@ -10,10 +10,8 @@ public partial class Parser{
     }
 
     private ASTNode ParseTypeID(){
-        if(PeekAtType(0) is not Token_Type.Identifier && 
-            (PeekAtType(1) is not Token_Type.Identifier || 
-                (PeekAtType(1) is not Token_Type.OpenBox && PeekAtType(3) is not Token_Type.Identifier))){
-            return new Error("Expected a type and a name");
+        if(PeekAtType(0) is not Token_Type.Identifier){
+            return new Error("Expected a type");
         }
 
         string s = Peek(0)?.text ?? "";
