@@ -1,7 +1,7 @@
 func string[] args -> Main -> int n{
-    //    |> "Hello World!" -> Print;
-    //    |> Tick;
-    //x   |= Get;
+        |> 5 -> Print;
+        |> Tick;
+    x   |= Get;
 
     //    do "Hello World!" -> Print;
     //    do Tick;

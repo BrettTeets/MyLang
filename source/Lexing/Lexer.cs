@@ -2,129 +2,6 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 
 public class Lexer{
-    public IEnumerable<Token> Lex(StreamReader stream){
-        bool CommentMode = false;
-        bool StringMode = false;
-
-        Token token = new();
-
-        while(stream.EndOfStream is false){
-            
-            if(stream.Peek() != -1){
-                char c = (char)stream.Read();
-                char p = (char)stream.Peek();
-
-                //Once you are in a comment mode the only thing that can get you out is new line.
-                if(CommentMode){
-                    if(c == '\n') {
-                        CommentMode = false; 
-                        continue;
-                    }
-                    else {
-                        continue;
-                    }
-                }
-                else{
-                    //If you are not in comment mode or string mode and you read the comment characters enter comment mode.
-                    if(StringMode is false && c == '/' && p == '/'){
-                        stream.Read(); //consume that / you just peeked at.
-                        CommentMode = true; 
-                        continue;
-                    }
-                }
-
-                if(StringMode){
-                    if(c == '\\' && p == '"'){ 
-                        token.text += p; stream.Read(); //consume p, but discard c;
-                        continue;
-                    }
-                    if(c == '"'){
-                        token.text += c;
-                        StringMode = false;
-                        yield return ParseString(token); token = new(); 
-                        continue;
-                    }
-                    else{
-                        token.text += c;
-                        continue;
-                    }
-                }
-                else{
-                    if(c == '"'){
-                        if(token.IsTokenBeingBuilt()) {yield return ParseToken(token); token = new();}
-
-                        StringMode = true;
-                        token.text += c;
-                    }
-                    else if(c == '$' && p == '"'){
-                        if(token.IsTokenBeingBuilt()) {yield return ParseToken(token); token = new();}
-
-                        StringMode = true;
-                        token.text += c;
-                        token.text += p; stream.Read(); //consume p.
-                    }
-                    else if(c == '@' && p == '"'){
-                        if(token.IsTokenBeingBuilt()) {yield return ParseToken(token); token = new();}
-
-                        StringMode = true;
-                        token.text += c;
-                        token.text += p; stream.Read(); //consume p.
-                    }
-                }
-
-                if(char.IsWhiteSpace(c)){
-                    if(token.IsTokenBeingBuilt()) {yield return ParseToken(token); token = new();}
-                }
-
-                if(token.IsDigit()){
-                    if((c == '.' || c == 'x' || c == 'b' || c == '_') && char.IsDigit(p)){
-                        token.text += c;
-                        token.text += p; stream.Read(); //consume p.
-                        continue;
-                    }
-                }
-
-                if(IsBlockSymbol(c)){
-                    if(token.IsTokenBeingBuilt()) {yield return ParseToken(token); token = new();}
-
-                    token.text += c;
-                    yield return ParseBlock(token); token = new();
-                    continue;
-                }
-
-                if(IsPunctuationSymbol(c)){
-                    if(token.IsTokenBeingBuilt()) {yield return ParseToken(token); token = new();}
-
-                    token.text += c;
-                    yield return ParsePunctuation(token); token = new();
-                    continue;
-                }
-
-                if(IsOperatorSymbol(c)){
-                    if(token.IsTokenBeingBuilt()) {yield return ParseToken(token); token = new();}
-
-                    token.text += c;
-                    if(IsOperatorSymbol(p)){
-                        token.text += p; stream.Read();
-                    }
-
-                    yield return ParseOperator(token); token = new();
-                    continue;
-                }
-
-                if(char.IsLetterOrDigit(c)){
-                    token.text += c;
-                    continue;
-                }
-            }
-            else if(token.text.Length > 0){
-                yield return ParseToken(token);
-            }
-        }
-    
-
-    }
-
     public (List<Token> AllTokens, List<Token> StructureTokens) Lex2(StreamReader stream){
         bool CommentMode = false;
         bool StringMode = false;
@@ -224,17 +101,6 @@ public class Lexer{
                     continue;
                 }
 
-                if(IsPunctuationSymbol(c)){
-                    if(token.IsTokenBeingBuilt()) {allTokens.Add(ParseToken(token)); token = new();}
-
-                    token.text += c;
-                    Token t = ParsePunctuation(token);
-                    allTokens.Add(t); 
-                    //structureTokens.Add(t);
-                    token = new();
-                    continue;
-                }
-
                 if(IsOperatorSymbol(c)){
                     if(token.IsTokenBeingBuilt()) {allTokens.Add(ParseToken(token)); token = new();}
 
@@ -245,7 +111,7 @@ public class Lexer{
 
                     Token t = ParseOperator(token);
                     allTokens.Add(t); 
-                    if(t.type == Token_Type.FlowOperator) structureTokens.Add(t);
+                    if(t.type == Token_Type.FlowOperator || t.type == Token_Type.EndStatement) structureTokens.Add(t);
                     token = new();
                     continue;
                 }
@@ -312,16 +178,6 @@ public class Lexer{
         return token;
     }
 
-    private Token ParsePunctuation(Token token){
-        token.type = token.text switch{
-            "," => Token_Type.Seperator,
-            ";" => Token_Type.EndStatement,
-            _ => Token_Type.Error,
-        };
-
-        return token;
-    }
-
     private Token ParseOperator(Token token){
         //TODO distingish between mathmatical and logical operators.
         token.type = token.text switch {
@@ -341,24 +197,11 @@ public class Lexer{
             "=>" => Token_Type.DefiningOperator,
             "<" => Token_Type.LessThan,
             ">" => Token_Type.GreaterThan,
+            "," => Token_Type.Seperator,
+            ";" => Token_Type.EndStatement,
             _ => Token_Type.Error,
         };
         return token;
-    }
-
-    private bool IsPunctuationSymbol(char c){
-        return c switch{
-            ',' => true,
-            ';' => true,
-
-            '.' => true,
-            '?' => true,
-            '\\' => true,
-            '#' => true,
-            '$' => true,
-            '@' => true,
-            _ => false,
-        };
     }
 
     private bool IsOperatorSymbol(char c){
@@ -376,6 +219,14 @@ public class Lexer{
             '^' => true,
             '!' => true,
             ':' => true,
+            ';' => true,
+            ',' => true,
+            '.' => true,
+            '?' => true,
+            '\\' => true,
+            '#' => true,
+            '$' => true,
+            '@' => true,
             _ => false,
         };
     }
