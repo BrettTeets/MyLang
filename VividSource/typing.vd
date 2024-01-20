@@ -1,0 +1,75 @@
+trait Binary{
+    func Binary, Binary -> |Or -> Binary;
+    func Binary, Binary -> &And -> Binary;
+    func Binary, Binary -> ^Xor -> Binary;
+    func Binary, Binary -> >>RightShift -> Binary;
+    func Binary, Binary -> <<LeftShift -> Binary;
+    func Binary, Binary -> !Not -> Binary;
+}
+
+trait Number<T>{
+    func T, T -> +Add -> T;
+    func T, T -> -Sub -> T;
+    func T, T -> *Mul -> T;
+    func T, T -> /Div -> T q, T r;
+    func T, T -> **Pow -> T;
+}
+
+trait Comparable{
+    func T, T -> <LessThan -> Boolean;
+    func T, T -> >GreaterThan -> Boolean;
+}
+
+trait Equalable{
+    func T, T -> ==Equality -> Boolean;
+}
+
+type Boolean (u8) : Binary{
+    False = 0;
+    True = _;
+}
+
+//'x' will translate to to char.
+type AsciiChar (u8) {
+
+}
+
+//!CharacterLiteral and !StringLiteral are flags that say this object will accept 'a' or "abc" respectively.
+
+type Char (u32) : !CharacterLiteral {
+    Value = _;
+}
+
+type String :!StringLiteral {
+
+}
+
+
+
+//nat will map to this type.
+type Natural (u32) : Number, Binary, !Numeric{
+    Value = _;
+}
+
+//int will map to this type.
+type Integer (i32) : Number, Binary, !Numeric{
+    Value = _;
+}
+
+//float will map to this type.
+type Real (f32) : !Numeric{
+    Value = _;
+
+    func T, T -> +Add -> T;
+    func T, T -> -Sub -> T;
+    func T, T -> *Mul -> T;
+    func T, T -> /Div -> T;
+    func T, T -> **Pow -> T;
+}
+
+type Meter is Real {
+
+}
+
+//Numeric allows int x = 52; or Meter m = 0.1; to work without needing explicit conversion. 
+//But float x = 5; Meter m = x; Wont work. Once a literal has been placed into a type it wont be explicitly changed.
